@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx"
@@ -66,7 +67,7 @@ func (db *PostgresPersistence) GetFileMetadata(fileId uuid.UUID) (filestore.File
 		fileId))
 	var meta filestore.FileMetadata
 
-	query := `SELECT file_id,file_name,created,size,metadata FROM file_meta
+	query := `SELECT file_id,file_name,created,size,metadata FROM file_metadata
 	WHERE file_id = $1`
 	row := db.Session.QueryRow(context.Background(), query, fileId)
 	if err := row.Scan(&meta.FileId, &meta.FileName, &meta.Created,
@@ -120,11 +121,28 @@ func (db *PostgresPersistence) CreateFile(content []byte, fileName string,
 // db function used to modify an existing file metadata
 func (db *PostgresPersistence) ModifyFile(meta filestore.FileMetadata, contents []byte) error {
 	log.Debug(fmt.Sprintf("modifying file %s postgres storage...", meta.FileId))
-	return nil
+	return filestore.ErrFeatureNotSupported
 }
 
 // db function used to delete a particular file with given file ID
 func (db *PostgresPersistence) DeleteFile(meta filestore.FileMetadata) error {
 	log.Debug(fmt.Sprintf("deleting file %s from postgres storage...", meta.FileId))
+
+	fpath := fmt.Sprintf("%s/%s", db.BaseFilePath, meta.FileId)
+	if err := os.Remove(fpath); err != nil {
+		log.Error(fmt.Errorf("unable to delete file: %+v", err))
+		return filestore.ErrCannotDeleteFile
+	}
+
+	query := `DELETE FROM file_metadata WHERE file_id = $1`
+	_, err := db.Session.Exec(context.Background(), query, meta.FileId)
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+// db function used to archive file
+func (db *PostgresPersistence) ArchiveFile(meta filestore.FileMetadata) error {
+	return filestore.ErrFeatureNotSupported
 }

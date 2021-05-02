@@ -6,10 +6,11 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/PSauerborn/project-alpha/internal/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/PSauerborn/project-alpha/internal/pkg/utils"
 )
 
 // API handler used to serve health check handler
@@ -174,12 +175,18 @@ func PutFileHandler(ctx *gin.Context) {
 			gin.H{"http_code": http.StatusBadRequest, "message": "Invalid request body"})
 		return
 	}
-	// mofidy file
+	// mofidy file via persistence layer
 	if err := persistence.ModifyFile(meta, body); err != nil {
 		log.Error(fmt.Errorf("unable to modify file: %+v", err))
-		status := http.StatusInternalServerError
-		ctx.AbortWithStatusJSON(status, gin.H{"http_code": status,
-			"message": "Internal server error"})
+		switch err {
+		case ErrFeatureNotSupported:
+			ctx.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{"http_code": http.StatusNotImplemented,
+				"message": "Internal server error"})
+		default:
+			status := http.StatusInternalServerError
+			ctx.AbortWithStatusJSON(status, gin.H{"http_code": status,
+				"message": "Internal server error"})
+		}
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"http_code": http.StatusOK,

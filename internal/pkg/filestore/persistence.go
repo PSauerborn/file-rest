@@ -9,8 +9,10 @@ import (
 
 var (
 	// define custom errors for file persistence
-	ErrFileNotFound     = errors.New("cannot find specified file")
-	ErrPermissionDenied = errors.New("permission denied when trying to access file")
+	ErrFileNotFound        = errors.New("cannot find specified file")
+	ErrPermissionDenied    = errors.New("permission denied when trying to access file")
+	ErrCannotDeleteFile    = errors.New("cannot delete specified file")
+	ErrFeatureNotSupported = errors.New("selectd feature currently not supported")
 )
 
 var persistence FileStorePersistence
@@ -32,6 +34,7 @@ type FileStorePersistence interface {
 	CreateFile(contents []byte, fileName string, meta map[string]interface{}) (uuid.UUID, error)
 	ModifyFile(meta FileMetadata, contents []byte) error
 	DeleteFile(meta FileMetadata) error
+	ArchiveFile(meta FileMetadata) error
 }
 
 type FileMetadata struct {

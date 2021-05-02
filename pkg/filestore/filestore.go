@@ -1,6 +1,9 @@
 package filestore
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/PSauerborn/project-alpha/internal/pkg/filestore"
@@ -18,8 +21,8 @@ func NewFilestoreAPI(persistence filestore.FileStorePersistence) *gin.Engine {
 	r.GET("/filestore/health", filestore.HealthCheckHandler)
 	// define routes used to retrieve files
 	r.GET("/filestore/files", filestore.ListFilesHandler)
-	r.GET("/filestore/file/contents/:fileId", filestore.GetFileHandler)
-	r.GET("/filestore/file/meta/:fileId", filestore.GetFileMetadataHandler)
+	r.GET("/filestore/file/:fileId/content", filestore.GetFileHandler)
+	r.GET("/filestore/file/:fileId/meta", filestore.GetFileMetadataHandler)
 
 	// define routes used to create and modify files
 	r.POST("/filestore/file", filestore.CreateFileHandler)
@@ -38,6 +41,14 @@ func NewAccessor(host, protocol string, port int) filestore.FileStoreAPIAccessor
 
 // function used to generate new instance of postgres persistence
 func NewPostgresPersistence(connectionString, basePath string) *db.PostgresPersistence {
+	directories := []string{
+		basePath,
+		fmt.Sprintf("%s/archive", basePath),
+	}
+	// generate required directories st start time
+	for _, dir := range directories {
+		os.MkdirAll(dir, os.ModePerm)
+	}
 	basePersistence := utils.NewBasePersistence(connectionString)
 	// generate new instance of base persistence
 	return &db.PostgresPersistence{
