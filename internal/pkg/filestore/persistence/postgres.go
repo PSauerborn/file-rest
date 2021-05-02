@@ -158,3 +158,24 @@ func (db *PostgresPersistence) ArchiveFile(meta filestore.FileMetadata) error {
 	_, err := db.Session.Exec(context.Background(), query, meta.FileId)
 	return err
 }
+
+// db function to search meta
+func (db *PostgresPersistence) SearchFilesByMetadata(terms map[string]interface{}) (
+	[]filestore.FileMetadata, error) {
+	log.Debug(fmt.Sprintf("searching files with terms %+v", terms))
+	matches := []filestore.FileMetadata{}
+	// retrieve file list from database
+	files, err := db.ListFiles()
+	if err != nil {
+		return matches, err
+	}
+
+	// iterate over files and append to results
+	// if provided metadata fields all match
+	for _, f := range files {
+		if filestore.MapMatchesTerms(f.Meta, terms, filestore.CompleteMatch) {
+			matches = append(matches, f)
+		}
+	}
+	return matches, nil
+}

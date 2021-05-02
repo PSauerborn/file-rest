@@ -260,7 +260,7 @@ func ArchiveFileHandler(ctx *gin.Context) {
 		switch err {
 		case ErrFeatureNotSupported:
 			ctx.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{"http_code": http.StatusNotImplemented,
-				"message": "Internal server error"})
+				"message": "Archiving not supported"})
 		default:
 			status := http.StatusInternalServerError
 			ctx.AbortWithStatusJSON(status, gin.H{"http_code": status,
@@ -270,4 +270,34 @@ func ArchiveFileHandler(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"http_code": http.StatusOK,
 		"message": "Successfully archived file"})
+}
+
+func SearchFilesHandler(ctx *gin.Context) {
+	log.Info("received requst for search")
+	var request struct {
+		SearchTerms map[string]interface{} `json:"search_terms"`
+	}
+	if err := ctx.ShouldBind(&request); err != nil {
+		log.Error(fmt.Errorf("received invalid request body: %+v", err))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"http_code": http.StatusBadRequest,
+			"message": "Invalid search request"})
+		return
+	}
+	// search files by metadata
+	results, err := persistence.SearchFilesByMetadata(request.SearchTerms)
+	if err != nil {
+		log.Error(fmt.Errorf("unable to search files: %+v", err))
+		switch err {
+		case ErrFeatureNotSupported:
+			ctx.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{"http_code": http.StatusNotImplemented,
+				"message": "Searching not supported"})
+		default:
+			status := http.StatusInternalServerError
+			ctx.AbortWithStatusJSON(status, gin.H{"http_code": status,
+				"message": "Internal server error"})
+		}
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"http_code": http.StatusOK,
+		"results": results})
 }

@@ -35,6 +35,7 @@ type FileStorePersistence interface {
 	ModifyFile(meta FileMetadata, contents []byte) error
 	DeleteFile(meta FileMetadata) error
 	ArchiveFile(meta FileMetadata) error
+	SearchFilesByMetadata(terms map[string]interface{}) ([]FileMetadata, error)
 }
 
 type FileMetadata struct {
