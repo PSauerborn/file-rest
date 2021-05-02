@@ -11,9 +11,12 @@ import (
 var cfg = utils.NewConfigMapWithValues(map[string]string{
 	"listen_port":  "10874",
 	"postgres_url": "postgres://postgres:development@localhost:5432/postgres",
+	"log_level":    "DEBUG",
+	"storage_path": "./data",
 })
 
 func main() {
+	cfg.ConfigureLogging()
 	// get listen port from env vars and convert to int
 	port, err := strconv.Atoi(cfg.Get("listen_port"))
 	if err != nil {
@@ -21,7 +24,8 @@ func main() {
 	}
 
 	// generate new persistence layer and connect
-	persistence := filestore.NewPostgresPersistence(cfg.Get("postgres_url"), "./data")
+	persistence := filestore.NewPostgresPersistence(cfg.Get("postgres_url"),
+		cfg.Get("storage_path"))
 	if err := persistence.Connect(); err != nil {
 		panic(fmt.Errorf("unable to connect persistence: %+v", err))
 	}

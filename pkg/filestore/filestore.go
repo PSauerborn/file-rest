@@ -27,6 +27,7 @@ func NewFilestoreAPI(persistence filestore.FileStorePersistence) *gin.Engine {
 	// define routes used to create and modify files
 	r.POST("/filestore/file", filestore.CreateFileHandler)
 	r.PUT("/filestore/file/:fileId", filestore.PutFileHandler)
+	r.PUT("/filestore/file/:fileId/archive", filestore.ArchiveFileHandler)
 	r.DELETE("/filestore/file/:fileId", filestore.DeleteFileHandler)
 	return r
 }

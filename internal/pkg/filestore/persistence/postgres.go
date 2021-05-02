@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/PSauerborn/project-alpha/internal/pkg/filestore"
@@ -28,7 +28,8 @@ func (db *PostgresPersistence) ListFiles() ([]filestore.FileMetadata, error) {
 	log.Debug("fetching files from postgres storage...")
 	files := []filestore.FileMetadata{}
 
-	query := `SELECT file_id,file_name,created,size,metadata FROM file_metadata`
+	query := `SELECT file_id,file_name,created,size,metadata FROM file_metadata
+	WHERE archived=false`
 	rows, err := db.Session.Query(context.Background(), query)
 	if err != nil {
 		switch err {
@@ -68,7 +69,7 @@ func (db *PostgresPersistence) GetFileMetadata(fileId uuid.UUID) (filestore.File
 	var meta filestore.FileMetadata
 
 	query := `SELECT file_id,file_name,created,size,metadata FROM file_metadata
-	WHERE file_id = $1`
+	WHERE file_id = $1 AND archived=false`
 	row := db.Session.QueryRow(context.Background(), query, fileId)
 	if err := row.Scan(&meta.FileId, &meta.FileName, &meta.Created,
 		&meta.Size, &meta.Meta); err != nil {
@@ -144,5 +145,16 @@ func (db *PostgresPersistence) DeleteFile(meta filestore.FileMetadata) error {
 
 // db function used to archive file
 func (db *PostgresPersistence) ArchiveFile(meta filestore.FileMetadata) error {
-	return filestore.ErrFeatureNotSupported
+	log.Debug("archieving file %+v...", meta)
+	// construct current and target directories
+	current := fmt.Sprintf("%s/%s", db.BaseFilePath, meta.FileId)
+	target := fmt.Sprintf("%s/archive/%s", db.BaseFilePath, meta.FileId)
+	if err := os.Rename(current, target); err != nil {
+		log.Error(fmt.Errorf("cannot move files: %+v", err))
+		return err
+	}
+
+	query := `UPDATE file_metadata SET archived=true WHERE file_id=$1`
+	_, err := db.Session.Exec(context.Background(), query, meta.FileId)
+	return err
 }

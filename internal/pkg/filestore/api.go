@@ -229,3 +229,45 @@ func DeleteFileHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"http_code": http.StatusOK,
 		"message": "Successfully deleted file"})
 }
+
+func ArchiveFileHandler(ctx *gin.Context) {
+	log.Info("received request to archive file")
+	fileId, err := uuid.Parse(ctx.Param("fileId"))
+	if err != nil {
+		log.Error(fmt.Errorf("received invalid file ID %s", ctx.Param("fileId")))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"http_code": http.StatusBadRequest,
+			"message": "Invalid file ID"})
+		return
+	}
+	// retrieve file metadata from persistence layer
+	meta, err := persistence.GetFileMetadata(fileId)
+	if err != nil {
+		log.Error(fmt.Errorf("unable to retrieve file metadata: %+v", err))
+		switch err {
+		case ErrFileNotFound:
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"http_code": http.StatusNotFound,
+				"message": "Cannot find file"})
+		default:
+			status := http.StatusInternalServerError
+			ctx.AbortWithStatusJSON(status, gin.H{"http_code": status,
+				"message": "Internal server error"})
+		}
+		return
+	}
+
+	if err := persistence.ArchiveFile(meta); err != nil {
+		log.Error(fmt.Errorf("unable to archive file: %+v", err))
+		switch err {
+		case ErrFeatureNotSupported:
+			ctx.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{"http_code": http.StatusNotImplemented,
+				"message": "Internal server error"})
+		default:
+			status := http.StatusInternalServerError
+			ctx.AbortWithStatusJSON(status, gin.H{"http_code": status,
+				"message": "Internal server error"})
+		}
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"http_code": http.StatusOK,
+		"message": "Successfully archived file"})
+}
