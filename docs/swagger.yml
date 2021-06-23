@@ -1,0 +1,11 @@
+openapi: 3.0.0
+info:
+  title: File REST AI
+  description: Micro-service used to store and manage files
+  version: 0.1.0
+
+tags:
+  - name: Standard Routes
+    description: standard routes for all users
+
+paths: {}
