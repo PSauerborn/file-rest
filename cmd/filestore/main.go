@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/PSauerborn/project-alpha/pkg/filestore"
-	"github.com/PSauerborn/project-alpha/pkg/utils"
+	"github.com/PSauerborn/file-rest/pkg/filestore"
+	"github.com/PSauerborn/file-rest/pkg/utils"
 )
 
 var cfg = utils.NewConfigMapWithValues(map[string]string{

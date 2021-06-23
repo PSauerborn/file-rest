@@ -1,4 +1,4 @@
-module github.com/PSauerborn/project-alpha
+module github.com/PSauerborn/file-rest
 
 go 1.15
 

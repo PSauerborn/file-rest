@@ -12,8 +12,8 @@ import (
 	"github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/PSauerborn/project-alpha/internal/pkg/filestore"
-	"github.com/PSauerborn/project-alpha/internal/pkg/utils"
+	"github.com/PSauerborn/file-rest/internal/pkg/filestore"
+	"github.com/PSauerborn/file-rest/internal/pkg/utils"
 )
 
 type PostgresPersistence struct {
@@ -107,7 +107,7 @@ func (db *PostgresPersistence) CreateFile(content []byte, fileName string,
 		return fileId, errors.New("invalid file metadata")
 	}
 
-	query := `INSERT INTO file_metadata(file_id,file_name,size,metadata) 
+	query := `INSERT INTO file_metadata(file_id,file_name,size,metadata)
 	VALUES($1,$2,$3,$4)`
 	_, err = db.Session.Exec(context.Background(), query, fileId, fileName,
 		len(content), jsonBody)

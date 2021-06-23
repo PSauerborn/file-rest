@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/PSauerborn/project-alpha/internal/pkg/filestore"
-	db "github.com/PSauerborn/project-alpha/internal/pkg/filestore/persistence"
-	"github.com/PSauerborn/project-alpha/internal/pkg/utils"
+	"github.com/PSauerborn/file-rest/internal/pkg/filestore"
+	db "github.com/PSauerborn/file-rest/internal/pkg/filestore/persistence"
+	"github.com/PSauerborn/file-rest/internal/pkg/utils"
 )
 
 // function used to generate new API instance

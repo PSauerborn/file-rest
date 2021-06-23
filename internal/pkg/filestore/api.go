@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/PSauerborn/project-alpha/internal/pkg/utils"
+	"github.com/PSauerborn/file-rest/internal/pkg/utils"
 )
 
 // API handler used to serve health check handler
